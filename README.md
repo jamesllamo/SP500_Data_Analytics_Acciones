@@ -1,12 +1,12 @@
-<p align=center><img src=https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTdQPqnkZP3wB0cE0KHZM5aoBHGE8mgnRCzCWxApI0k&s><p>
+<p align=center><img src=https://raw.githubusercontent.com/jamesllamo/SP500_Data_Analytics_Acciones/3bc131ce43711dd51afca84fc12ef02abad4d91d/src/american-stock-market-index-s-p-500-spx-financial-trading-business-concept.jpg><p>
 
 # <h1 align=center> **DATA SCIENCE** </h1>
 
-# <h1 align=center>**`Machine Learning Operations (MLOps)`**</h1>
+# <h1 align=center>**`Análisis de Acciones S&P500 y recomendaciones de inversión`**</h1>
 
 <hr>  
 
-¡A continuación se describirá los procesos de Extract, transform and load - ETL, Exploratory Data Analysis - EDA y Machine Learning llevados a cabo en el presente proyecto de ***Data Science***.  
+¡A continuación se describirá los procesos de Extract, transform and load - ETL, Exploratory Data Analysis - EDA y Data Analytics llevados a cabo en el presente proyecto de ***Data Science***.  
 
 <hr>  
 
@@ -174,3 +174,4 @@ El deployado se realizará en la plataforma de deta.
 Debido al uso de sklearn en machine learning y es muy pesado para ser cargado a deta.space. El código está creado.
 
 <br/>
+<p align=center><img src=https://raw.githubusercontent.com/jamesllamo/SP500_Data_Analytics_Acciones/3bc131ce43711dd51afca84fc12ef02abad4d91d/src/17569089_57_MjYwNzIwIDE0.jpg><p>
