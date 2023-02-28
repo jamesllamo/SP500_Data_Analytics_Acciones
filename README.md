@@ -8,7 +8,24 @@
 
 ¡A continuación se describirá los procesos de Extract, transform and load - ETL, Exploratory Data Analysis - EDA y Data Analytics llevados a cabo en el presente proyecto de ***Data Science***.  
 
-<hr>  
+<hr>
+
+## Contexto
+Cuando surgió la pandemia causada por el COVID-19, el mercado financiero internacional llevaba años de relativa tranquilidad posterior al desplome de 2008 con la burbuja de la deuda inmobiliaria estadounidense. La pandemia, un evento considerado por muchos analistas como un “cisne negro”, (sucesos que no habría habido forma alguna de predecir y con consecuencias graves), tuvo implicaciones trascendentales no sólo en la salud de las personas. Las medidas adoptadas por los gobiernos para afrontarla afectaron otros ámbitos, por ejemplo, los confinamientos cortaron por períodos más o menos extendidos casi todas las líneas de suministros perjudicando la producción global de bienes y servicios; o la generación de nuevas tendencias “remote first” llevaron al crecimiento exponencial de empresas de consumo masivo online o de herramientas que permitieran tal filosofía de trabajo, como Zoom.
+
+Este cambio se tradujo en el mercado en un movimiento muy marcado de inversiones hacia empresas tecnológicas, mientras que las consideradas tradicionales se vieron más o menos desfavorecidas. Sin embargo, mucha gente dependiente de la presencialidad vio reducidos sus ingresos al punto de ver comprometida su subsistencia por lo que la mayoría de los gobiernos adoptó medidas de asistencia, recurriendo a la emisión monetaria para tales fines.
+
+Esto llevó a una hiper liquidez a nivel global, cuyos efectos vemos aún al día de hoy: la Reserva Federal realiza hace tiempo aumentos de las tasas de interés que paga por sus bonos, a un ritmo no visto desde hace décadas, en un intento por bajar la aún creciente inflación. Esto, la incertidumbre con respecto a la situación económica mundial y el impacto de otros eventos como la guerra Ucrania-Rusia y el estrés que la misma salpicó a las relaciones geopolíticas internacionales, despertaron una migración al dólar estadounidense, en busca de refugio.
+
+La suba de tasas por parte de la FED y la migración al dólar causaron su fortalecimiento, generando que muchos países en vías de desarrollo vieran encarecidas sus deudas en dólares, y empezaran a notarse indicios de una recesión inminente.
+
+Los mercados financieros son el espacio en donde se encuentran la oferta y la demanda de activos financieros, como bonos y acciones. De esta forma, a través del mercado, los gobiernos y las empresas pueden obtener financiamiento mientras que las personas pueden invertir sus ahorros y obtener ganancias.
+
+En líneas generales, en el corto/mediano plazo se observan muchas variaciones en los precios de los activos, pero a largo plazo se suelen observar tendencias alcistas (también llamadas bullish) o tendencias bajistas (bearish). Una herramienta utilizada para el correcto análisis y visualización de los precios, minimizando el “ruido” generado por la volatilidad inherente, son las medias móviles, que muestran el valor medio del precio de un mercado/activo durante un determinado período de tiempo y en función del cambio del precio, su valor medio va aumentando o disminuyendo.
+
+Si por ejemplo tomamos una media móvil de periodo 200 (es decir, 200 sesiones) tenemos la media aritmética del precio durante las anteriores 200 sesiones y lo que se hace es que se suman los 200 precios de cierre y posteriormente los dividimos entre 200.
+
+<hr>
 
 ## Objetivos
 
@@ -16,7 +33,7 @@
 
 + Analizar los datos para encontrar relaciones, valores nulos, duplicados y otros
 
-+ Realizar un modelo de Machine Learning que permita recomendar películas a los usuarios en base su historial
++ Desarrollar un Dashboard con indicadores para recomendar invertir en una empresa
 
 <hr>  
 
@@ -24,154 +41,159 @@
 
 ## 1. Extracción
 
-Las `librerías` usadas son las siguientes: `pandas` para manejo de Dataframes y `datetime` para manejo de formatos fecha.
+Las `librerías` usadas son las siguientes: `pandas` para manejo de Dataframes, `datetime` para manejo de formatos fecha, `pandas_datareader` para leer data de yfinance e `yfinance` para acceder a la data de las acciones.
 
     import pandas as pd
-    import datetime
+    from datetime import
+    from pandas_datareader
+    import yfinance as yf
 
-+ Los archivos fueron cargados en las siguientes dataframes:
+Posteriormente `scrapeamos` la información Wikipedia sobre las lista más prestigiosa de empresas que cotizan en bolsa `S&P500`. Para eso usamos el siguiente código:
 
-+ amazon_prime_titles.csv en `amazon`
+    url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
+    tables = pd.read_html(url)
+    SP500 = tables[0]
+    SP500.head(1)
 
-+ disney_plus_titles.csv en `disney`
+Una vez obtenido los valores del `S&P500` utilizamos la columna "Symbol" para scrapear la información existente desde el año 2000 hasta la fecha de `Acciones` mediante `yahoo`.
 
-+ hulu_titles.csv en `hulu`
+    today = datetime.today().date()
+    today_pandas = pd.to_datetime(today)
+    hoy=today_pandas.strftime('%Y-%m-%d')
+    yf.pdr_override()
+    data = pdr.get_data_yahoo(SP500_Symbol, start="2000-01-01", end=hoy)
 
-+ netflix_titles.csv en `netflix`
 
 <br/>
 
 ## 2. Transformación
 
-Se realizó las siguientes transformaciones en los **`datos de películas`**:
+En primer lugar, generamos una copia del DataFrame original y cambiamos el órden de su cabecera:
 
-+ Generamos el campo **`id`**: Cada id se compone de la primera letra del nombre de la plataforma, seguido del show_id ya presente en los datasets (ejemplo para títulos de Amazon = **`as123`**)
+    data_aux=data.copy()
+    data_aux.columns = data_aux.columns.swaplevel(0, 1)
 
-+ Los valores nulos del campo rating fueron reemplazados por el string “**`G`**” (corresponde al maturity rating: “general for all audiences”
+En segundo lugar, mediante el siguiente código convertirmos al "index" Date en una columna.
 
-+ Las fecha están en formato **`AAAA-mm-dd`**
-
-+ Los campos de texto están en **minúsculas**, sin excepciones
-
-+ El campo ***duration*** se ha dividido en dos campos: **`duration_int`** y **`duration_type`**. El primero es un integer y el segundo un string indicando la unidad de medición de duración: min (minutos) o season (temporadas)
-
-Se realizó las siguientes transformaciones en los **`Ratings de los usuarios`**:
-
-+ Las fecha están en formato **`AAAA-mm-dd`**
-
-+ `Renombramos` columnas: renombramos la columna 'rating' a 'score' y la columna 'movieId' a 'id'
+    data.reset_index(inplace=True)
+    data['Date'] = pd.to_datetime(data['Date'])
+    data_aux.reset_index(inplace=True)
+    data_aux['Date'] = pd.to_datetime(data_aux['Date'])
 
 <br/>
 
 ## Carga
 
-Para mejorar el manejo de los datos se ha construido un único dataframe de nombre `movies` mediante la columna `id`.
-
-Posteriormente, se ha exportado la data en un formato csv en un archivo llamado `movies_ETL`. Este archivo se usará para el posterior procesamiento EDA.
-
-    movies.to_csv('movies_ETL.csv')
-
-Por otro lado, se ha exportado una data más pequeña en csv `movies_API` que contiene la información de las películas y un promedio de ratings por cada película. Este proceso se realizó con el fin de reducir el peso del archivo a cargar a Deta.
-
-    
-    movies_API.to_csv('movies_API.csv')
+Esta etapara se ha realizado de manera directa debido que tanto el EDA como el ETL se han realizado en el mismo documento.
 
 <br/>
 
-# **II. API CONSULTAS**
+# **II. EDA**
 
-## Desarrollo de la API
-
-La API se ha **`desarrollado`** usando el framework ***FastAPI***. Las consultas desarrolladas son las siguientes:
-
-+ Película con mayor duración con filtros opcionales de AÑO, PLATAFORMA Y TIPO DE DURACIÓN. (la función debe llamarse get_max_duration(year, platform, duration_type))
-
-+ Cantidad de películas por plataforma con un puntaje mayor a XX en determinado año (la función debe llamarse get_score_count(platform, scored, year))
-
-+ Cantidad de películas por plataforma con filtro de PLATAFORMA. (La función debe llamarse get_count_platform(platform))
-
-+ Actor que más se repite según plataforma y año. (La función debe llamarse get_actor(platform, year))
-
-<br/>
-
-## Deployment
-
-El Deployment fue realizado en [Deta](https://www.deta.sh/?ref=fastapi) debido a su versatilidad. Para lograrlo se cargaron a deta los siguientes archivos:
-
-`main.py` contiene las funciones y el código para la comunicación de data entre la API y Deta.
-
-`movies_API.csv` contiene la información sobre las películas y los rstings.
-
-`requirements.txt` Contiene las librerías que se utilizarán dentro del archivo main.py.
-
-`Spacefile` Contiene las instrucciones para la carga de arhivos y para la correcta instalación de la API.
-
-`icon.jpg`  Es un icon declarado en Spacefile.
-
-`.gitignore` Se crea por defecto durante la instalación
-
-Carpeta `.space` Se crea por defecto durante la instalación
-
-
-<br/>
-
-# **III. EDA**
-
-Realizamos el **`Análisis exploratorio de los datos`** como parte del proceso de entender la información con la que se trabajará. Ya los datos están limpios, ahora es tiempo de investigar las relaciones que hay entre las variables de los datasets, ver si hay outliers o anomalías (que no tienen que ser errores necesariamente :eyes: ), y ver si hay algún patrón interesante que valga la pena explorar en un análisis posterior.
-
-A cotinuación presentamos el índice de los temas abordados:
+El siguiente Índice se ha utilizado para enfrentar el procesamiento EDA:
 
     1. IMPORTACIÓN DE LIBRERÍAS
-    2. CARGAMOS LA DATA
-    3. VISUALIZAMOS LA DATA
-    4. LIMPIEZA DE DATOS
-        4.1. Gestión de Nulos
-        4.2. Gestión de Duplicados
-        4.3. Gestión de Valores inconsistentes
-        4.4. Gestión de Outliers
+    2. VISUALIZAMOS LA DATA
+    3. LIMPIEZA DE DATOS
+        3.1. Gestión de Nulos
+        3.2. Gestión de Duplicados
+        3.3. Gestión de Outliers
+    4. SELECCIÓN DE NICHO
+        4.1. Selección del Sector
+            Análisis de Ratios de crecimiento
+            Variación del precio en el tiempo
+        4.2. Selección de 5 empresas con mejor rendimiento
     5. ANÁLISIS EXPLORATORIO
-        Histograms
-        Scatter plots
-        Bar plots
-        Correlation
-    6. ANÁLISIS PROFUNDO
-        Distribución
-        Pivot Tables
-        Cross-Tabulation
+        5.1. Comportamiento Estadístico
+    6. EXPORTAR DATA
 
-    7. EXPORTAR DATA PARA MACHINE LEARNING
+A contunuación hay un breve resumen del desarrollo de cada sección del análisis EDA:
 
-<br/>
+ <br/>
 
-# **IV. SISTEMA DE RECOMENDACIÓN (Machine Learning)**
+**1. IMPORTACIÓN DE `LIBRERÍAS`**
 
-## Entrenamiento del modelo
-
-Una vez que toda la data es consumible por la API ya lista para consumir para los departamentos de Analytics y de Machine Learning es hora de **`entrenar nuestro modelo de machine learning`** para armar un sistema de recomendación de películas para usuarios, donde dado un id de usuario y una película, nos diga si la recomienda o no para dicho usuario.
-
-Para procesar correctamente la información se usaron las siguientes librerías:
+Las Librerías utilizadas son:
 
     import pandas as pd
-    from sklearn.neighbors import NearestNeighbors
-    from sklearn.preprocessing import MinMaxScaler
     import numpy as np
-    from sklearn.metrics import mean_squared_error
-    from sklearn.model_selection import train_test_split
+    import matplotlib.pyplot as plt
+    import seaborn as sns
 
 <br/>
 
-Se importó el archivo `movies_etl_eda.csv` creado en los pasos anteriores para generar este modelo. Debido a que entrenamos al modelo unicamente con 100 mil datos obtuvimos un RMSE de 0.7330.
+**2. `VISUALIZAMOS` LA DATA**
 
-Posteriormente exportamos el modelo ya entrenado con el fin de deployarlo. Para eso usamos la `libería joblib.`
+La información está compuesta por una tabla de doble cabecera y para ser consultada se debe realizar en formato bidimensional.
 
-    from joblib import dump
-    dump(model, 'movies_modelo_entrenado.joblib')
+<br/>
 
-## Deployado
+**3. `LIMPIEZA` DE DATOS**
 
-El deployado se realizará en la plataforma de deta.
+*3.1. Gestión de `Nulos`*
 
-Debido al uso de sklearn en machine learning y es muy pesado para ser cargado a deta.space. El código está creado.
+Existen muchas empresas que están en la lista de las mejores 500 que han operado menos de 20 años, hay algunas empresas que tienen operaciones posterior al 2010. Esta información es clave al momento de comparar ratios y elegir la madurez de la compañía.
+
+*3.2. Gestión de `Duplicados`*
+
+Se ha medido la cantidad de duplicados y no existen dentro de la data. Por lo tanto, no se toma acción al respecto.
+
+*3.3. Gestión de `Outliers`*
+
+Los Outliers no fueron manipulados debido a que es data oficial de las acciones en el mundo y por ende ya fue procesada previamente.
+
+<br/>
+
+**4. SELECCIÓN DE `NICHO`**
+
+*4.1. Selección del `Sector`*
+
+En primer lugar para determinar el sector se ha considerado a los valores al cierre del día cómo precio de refencia, segundo se ha establecido promedios según el Años-MES.
+
+    data_close=pd.DataFrame(data.loc[:,'Close'])     # Filtramos la Data en base al valor de cierre
+    data_close['Date']=data.loc[:,'Date']            # Incluimos la columna Date
+    data_close_anio_mes = data_close.groupby(
+    data_close['Date'].dt.strftime('%Y-%m')).mean()  # Agrupar la data por Año-Mes
+
+Se han analizado Análisis de `Ratios` de crecimiento y la `Variación` del precio en el tiempo. Este último es el insumo principal para anaizar el ratio de volatilidad.
+
+*4.2. Selección de 5 empresas con mejor `rendimiento`*
+
+Una vez seleccionada el sector por mejor tasa de crecimiento anualizada, procedemos a seleccionar las 5 empresas con mejor taza de crecimiento y mejor pendiente en su curva.
+
+<br/>
+
+**5. ANÁLISIS `EXPLORATORIO`**
+
+En análisis exploratorio se ha centrado en una sola empresa con el fin de econtrar patrones o comportamientos que permitan entender mejor al dato.
+
+    Acciones_AZO=pd.DataFrame(Acciones_aux.loc[:,'AZO'])     # Filtramos la Data por empresa
+    Acciones_AZO                                             # Visualizamos
+
+Una vez extraida la data correspondiente a la empresa "AZO" se ha graficado una curva sombreada con donde las zonas verdes indican cuando el valor de "OPEN" fue menor al valor de "CLOSE" por lo tanto durante el ´mes el promedio se tuvo un valor positivo y color rojo para el efecto opuesto. También se realizón un análisis de pairplot para encontrar relación lineal entre las variables.
+
+*5.1. Comportamiento `Estadístico`*
+
+La función *`.pct_change()`* permite calcular la variación de un precio respecto a su valor anterior. Luego de aplicar esta función, eliminanos los nulos residuales de la operación y graficamos para determinar si la media de las variables es distinta de 0.
+
+<br/>
+
+**6. `EXPORTAR` DATA**
+
+Para exportar la data se ha realizado 2 grupos:
+
+El primer grupo se exportaron los valores de las aciones por día y filtrado por el tipo de valor (ejemplo Close, Open,...). Estos valores son los mismos del dataframe original con la única excepción que solo incluye los valores de las empresas 5 empresas seleccionadas.
+
+    Acciones["Close"].to_csv('Acciones_Close.csv', index=True)
+    Acciones["Open"].to_csv('Acciones_Open.csv', index=True)
+    Acciones["High"].to_csv('Acciones_High.csv', index=True)
+    Acciones["Low"].to_csv('Acciones_Low.csv', index=True)
+    Acciones["Volume"].to_csv('Acciones_Volume.csv', index=True)
+
+En el grupo 2, se ha transformado la data del grupo 1 en especial la data de cierre "CLOSE". La función `.pct_change()` permite arrojar la variación de los precios respecto a su valor anterior.
+
+    variacion_Close = Acciones['Close'].pct_change()
+    variacion_Close.to_csv('variacion_Close.csv', index=True)
 
 <br/>
 <p align=center><img src=https://raw.githubusercontent.com/jamesllamo/SP500_Data_Analytics_Acciones/3bc131ce43711dd51afca84fc12ef02abad4d91d/src/17569089_57_MjYwNzIwIDE0.jpg><p>
