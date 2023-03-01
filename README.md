@@ -201,3 +201,4 @@ En el grupo 2, se ha transformado la data del grupo 1 en especial la data de cie
 
 <br/>
 <p align=center><img src=https://raw.githubusercontent.com/jamesllamo/SP500_Data_Analytics_Acciones/3bc131ce43711dd51afca84fc12ef02abad4d91d/src/17569089_57_MjYwNzIwIDE0.jpg><p>
+<br/>
