@@ -23,8 +23,6 @@ Los mercados financieros son el espacio en donde se encuentran la oferta y la de
 
 En líneas generales, en el corto/mediano plazo se observan muchas variaciones en los precios de los activos, pero a largo plazo se suelen observar tendencias alcistas (también llamadas bullish) o tendencias bajistas (bearish). Una herramienta utilizada para el correcto análisis y visualización de los precios, minimizando el “ruido” generado por la volatilidad inherente, son las medias móviles, que muestran el valor medio del precio de un mercado/activo durante un determinado período de tiempo y en función del cambio del precio, su valor medio va aumentando o disminuyendo.
 
-Si por ejemplo tomamos una media móvil de periodo 200 (es decir, 200 sesiones) tenemos la media aritmética del precio durante las anteriores 200 sesiones y lo que se hace es que se suman los 200 precios de cierre y posteriormente los dividimos entre 200.
-
 <hr>
 
 ## Objetivos
@@ -140,7 +138,13 @@ Se ha medido la cantidad de duplicados y no existen dentro de la data. Por lo ta
 
 *3.3. Gestión de `Outliers`*
 
-Los Outliers no fueron manipulados debido a que es data oficial de las acciones en el mundo y por ende ya fue procesada previamente.
+Los Outliers no fueron eliminados debido a que es data oficial de las acciones en el mundo y por ende ya fue procesada previamente. Generamos un ciclo iterativo para graficar las 500 empresas en todos sus estados con el siguiente código:
+
+    numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+    for col in numeric_cols:
+        data.boxplot(column=[col],figsize=(5, 0.5),vert=False)
+        plt.show()
+
 
 <br/>
 
